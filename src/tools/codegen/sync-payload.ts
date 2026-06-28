@@ -69,15 +69,14 @@ PRESENTATION GUIDANCE:
           .optional()
           .describe('Specific table name to sync (e.g. supplier or core.supplier). When omitted, all payload files in the payload/ directory are synced.'),
         expandFk: z
-          .boolean()
+          .enum(['both', 'datatables-only'])
           .optional()
-          .default(false)
-          .describe('Opt-in FK expansion: build a JOIN from the table foreign keys, write query/<table>-join.sql, and point datatablesQuery/viewQuery at it (surfaces columns from referenced tables). REQUIRES table. When false, sync only applies schema drift.'),
+          .describe("Opt-in FK expansion mode. 'both': write query/<table>-join.sql and point both datatablesQuery and viewQuery at it. 'datatables-only': same but viewQuery is left unchanged (use when viewQuery already points to a custom SQL file). REQUIRES table. When omitted, sync only applies schema drift."),
         fkColumns: z
           .string()
           .min(1)
           .optional()
-          .describe("Only used with expandFk. Comma-separated QUALIFIED 'table.column' entries (e.g. 'supplier.supplier_code,supplier.supplier_name'). When omitted, the display column per FK is auto-resolved (name/nama -> code/kode -> primary key)."),
+          .describe("Override display columns for specific FKs. Format: 'ref_table.column' for unambiguous FKs, or 'local_fk_col:ref_table.column' to disambiguate when the same table is referenced by multiple FK columns (e.g. 't_group_id:t_group.nama,t_group_id_d1:t_group.kode'). FKs not listed here are auto-resolved. When omitted entirely, all FKs are auto-resolved; duplicate FK targets are auto-disambiguated using the local FK column name as prefix."),
       },
       annotations: {
         title: 'Sync Payload',
@@ -144,7 +143,7 @@ For the assistant:
       const args = ['restforge', 'payload', 'sync', `--config=${config}`];
       if (table) args.push(`--table=${table}`);
       if (expandFk) {
-        args.push('--expand-fk');
+        args.push(`--expand-fk=${expandFk}`);
         if (fkColumns) args.push(`--fk-columns=${fkColumns}`);
       }
 

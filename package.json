@@ -1,6 +1,6 @@
 {
   "name": "@restforgejs/mcp-server",
-  "version": "1.2.6",
+  "version": "1.3.0",
   "description": "RESTForge MCP Server — Model Context Protocol server that exposes RESTForge Platform commands to AI agents (Claude Desktop, Cursor, Claude CLI, and other MCP clients). Orchestrates project setup, code generation, and runtime launch via natural language. A thin orchestrator for the RESTForge Platform CLI, not a generic MCP framework or API testing tool.",
   "type": "module",
   "bin": {

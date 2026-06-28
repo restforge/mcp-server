@@ -8,7 +8,7 @@ export function registerDesignerInitProject(server: McpServer): void {
     'designer_init_project',
     {
       title: 'Init Designer Project',
-      description: `Initialise a new frontend project from an existing RESTForge Designer plugin, by running restforge-designer init. This WRITES a new project scaffold (config + structure) to disk, ready for generating frontend code.
+      description: `Initialise a new frontend project from an existing RESTForge Designer plugin, by running npx restforge-designer init. This WRITES a new project scaffold (config + structure) to disk, ready for generating frontend code.
 
 USE WHEN:
 - The user asks to start/initialise a new frontend project based on a designer plugin
@@ -20,12 +20,12 @@ DO NOT USE FOR:
 - Creating a brand new custom plugin from a template -> use 'designer_scaffold_plugin'
 - Listing or inspecting available plugins -> use 'designer_list_plugins' / 'designer_inspect_plugin'
 
-This tool wraps the RESTForge Designer CLI command: restforge-designer init --plugin=<plugin> --output=<output> [optional flags], run in the given cwd.
+This tool wraps the RESTForge Designer CLI command: npx restforge-designer init --plugin=<plugin> --output=<output> [optional flags], run in the given cwd.
 The --plugin and --output flags are always sent so the binary never drops into interactive prompt mode. Optional flags (app name/code, API URLs, auth settings, port, idle timeout, no-auth, overwrite, plugins dir) are forwarded only when supplied.
 
 Preconditions:
-- The 'restforge-designer' binary must be installed and reachable on PATH. This tool pre-checks that by running
-  'restforge-designer --version'; if the binary is missing, the response will surface that as a non-error precondition.
+- RESTForge Designer is invoked via 'npx restforge-designer' (the binary is bundled with the @restforgejs/platform package). This tool pre-checks that by running
+  'npx restforge-designer --version'; if it cannot run, the response will surface that as a non-error precondition.
 
 PRESENTATION GUIDANCE:
 - Match the user's language. If the user writes in Indonesian, respond in Indonesian.
@@ -122,7 +122,7 @@ PRESENTATION GUIDANCE:
 
       // Precondition check: the restforge-designer binary must be reachable on PATH.
       // Treated as a non-error precondition per the authoring guide §3.4.
-      const probe = await execProcess('restforge-designer', ['--version'], {
+      const probe = await execProcess('npx', ['restforge-designer', '--version'], {
         cwd: projectCwd,
         timeout: 10_000,
       });
@@ -131,7 +131,7 @@ PRESENTATION GUIDANCE:
           content: [
             {
               type: 'text',
-              text: `Precondition not met: the RESTForge Designer command-line tool is not installed or not on PATH.
+              text: `Precondition not met: the RESTForge Designer command-line tool could not be run via npx (the @restforgejs/platform package may not be installed in this folder).
 
 Working directory: ${projectCwd}
 Plugin: ${plugin}
@@ -141,9 +141,9 @@ Probe command: ${probe.command}
 Exit code: ${probe.exitCode}
 
 For the assistant:
-- The user needs to install RESTForge Designer (and ensure it is on the system PATH) before a project can be initialised.
-- When explaining to the user, say something like "the RESTForge Designer tool isn't installed or isn't on your PATH yet — please install it and try again". Do not mention internal tool names.
-- Once it is installed, retry initialising the project.`,
+- Make sure this project was created with 'npx create-restforge-app' (or the @restforgejs/platform package is installed in the project folder) before a project can be initialised, then try again.
+- When explaining to the user, say something like "the RESTForge Designer tool couldn't run — make sure this project was created with create-restforge-app (or the RESTForge platform package is installed here), then try again". Do not mention internal tool names.
+- Once it can run, retry initialising the project.`,
             },
           ],
           isError: false, // per §3.4
@@ -164,7 +164,7 @@ For the assistant:
       if (overwrite) args.push('--overwrite');
       if (pluginsDir) args.push(`--plugins-dir=${pluginsDir}`);
 
-      const result = await execProcess('restforge-designer', args, {
+      const result = await execProcess('npx', ['restforge-designer', ...args], {
         cwd: projectCwd,
         timeout: 60_000,
       });

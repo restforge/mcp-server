@@ -8,7 +8,7 @@ export function registerDesignerInspectPlugin(server: McpServer): void {
     'designer_inspect_plugin',
     {
       title: 'Inspect Designer Plugin',
-      description: `Inspect the metadata of a single RESTForge Designer frontend plugin (its schema, fields, components, and configuration), by running restforge-designer plugins inspect for a given plugin id.
+      description: `Inspect the metadata of a single RESTForge Designer frontend plugin (its schema, fields, components, and configuration), by running npx restforge-designer plugins inspect for a given plugin id.
 
 USE WHEN:
 - The user asks for the details, metadata, schema, or fields of one specific designer plugin
@@ -22,7 +22,7 @@ DO NOT USE FOR:
 - Previewing the files a payload would generate -> use 'designer_preview_files'
 - The authoritative catalog of UDF structure and rules (valid field types, required appConfig fields, enums, limits) -> use 'designer_get_udf_catalog'
 
-This tool wraps the RESTForge Designer CLI command: restforge-designer plugins inspect --plugin=<plugin> [--plugins-dir=<pluginsDir>], run in the given cwd.
+This tool wraps the RESTForge Designer CLI command: npx restforge-designer plugins inspect --plugin=<plugin> [--plugins-dir=<pluginsDir>], run in the given cwd.
 The CLI resolves the named plugin (auto-detected, or from --plugins-dir) and prints its metadata. It does not modify any file and does not require a license.
 
 IMPORTANT — identity, not UDF structure:
@@ -30,8 +30,8 @@ IMPORTANT — identity, not UDF structure:
 - For the authoritative UDF structure and rules, use 'designer_get_udf_catalog' (serialized from the designer's own validator constants). Use plugin inspection to learn what a SPECIFIC plugin provides; use the catalog to learn the UDF rules that apply across the designer.
 
 Preconditions:
-- The 'restforge-designer' binary must be installed and reachable on PATH. This tool pre-checks that by running
-  'restforge-designer --version'; if the binary is missing, the response will surface that as a non-error precondition.
+- RESTForge Designer is invoked via 'npx restforge-designer' (the binary is bundled with the @restforgejs/platform package). This tool pre-checks that by running
+  'npx restforge-designer --version'; if it cannot run, the response will surface that as a non-error precondition.
 
 PRESENTATION GUIDANCE:
 - Match the user's language. If the user writes in Indonesian, respond in Indonesian.
@@ -64,7 +64,7 @@ PRESENTATION GUIDANCE:
 
       // Precondition check: the restforge-designer binary must be reachable on PATH.
       // Treated as a non-error precondition per the authoring guide §3.4.
-      const probe = await execProcess('restforge-designer', ['--version'], {
+      const probe = await execProcess('npx', ['restforge-designer', '--version'], {
         cwd: projectCwd,
         timeout: 10_000,
       });
@@ -73,7 +73,7 @@ PRESENTATION GUIDANCE:
           content: [
             {
               type: 'text',
-              text: `Precondition not met: the RESTForge Designer command-line tool is not installed or not on PATH.
+              text: `Precondition not met: the RESTForge Designer command-line tool could not be run via npx (the @restforgejs/platform package may not be installed in this folder).
 
 Working directory: ${projectCwd}
 Plugin: ${plugin}
@@ -82,9 +82,9 @@ Probe command: ${probe.command}
 Exit code: ${probe.exitCode}
 
 For the assistant:
-- The user needs to install RESTForge Designer (and ensure it is on the system PATH) before a plugin can be inspected.
-- When explaining to the user, say something like "the RESTForge Designer tool isn't installed or isn't on your PATH yet — please install it and try again". Do not mention internal tool names.
-- Once it is installed, retry inspecting the plugin.`,
+- Make sure this project was created with 'npx create-restforge-app' (or the @restforgejs/platform package is installed in the project folder) before a plugin can be inspected, then try again.
+- When explaining to the user, say something like "the RESTForge Designer tool couldn't run — make sure this project was created with create-restforge-app (or the RESTForge platform package is installed here), then try again". Do not mention internal tool names.
+- Once it can run, retry inspecting the plugin.`,
             },
           ],
           isError: false, // per §3.4
@@ -95,7 +95,7 @@ For the assistant:
       const args = ['plugins', 'inspect', `--plugin=${plugin}`];
       if (pluginsDir) args.push(`--plugins-dir=${pluginsDir}`);
 
-      const result = await execProcess('restforge-designer', args, {
+      const result = await execProcess('npx', ['restforge-designer', ...args], {
         cwd: projectCwd,
         timeout: 15_000,
       });

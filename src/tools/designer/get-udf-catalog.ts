@@ -8,7 +8,7 @@ export function registerDesignerGetUdfCatalog(server: McpServer): void {
     'designer_get_udf_catalog',
     {
       title: 'Get UDF Catalog',
-      description: `Get the authoritative JSON catalog of RESTForge Designer UDF structure and rules (valid field types, editor modes, badge colors, id-generation options, navigation item types/depth limits, required appConfig fields, port range, number format, and dashboard widget/chart/data-source options), by running restforge-designer catalog. The catalog is serialized from the designer's own validator constants (single source of truth), so it stays in sync with the installed designer version and never drifts.
+      description: `Get the authoritative JSON catalog of RESTForge Designer UDF structure and rules (valid field types, editor modes, badge colors, id-generation options, navigation item types/depth limits, required appConfig fields, port range, number format, and dashboard widget/chart/data-source options), by running npx restforge-designer catalog. The catalog is serialized from the designer's own validator constants (single source of truth), so it stays in sync with the installed designer version and never drifts.
 
 USE WHEN:
 - Before composing or editing a UDF payload — to ground valid field types and required fields against the designer's own rules
@@ -22,12 +22,12 @@ DO NOT USE FOR:
 - Listing available designer plugins -> use 'designer_list_plugins'
 - The BACKEND field validation catalog (RDF payload fieldValidation constraints, data types, format presets) -> use 'codegen_get_field_validation_catalog'
 
-This tool wraps the RESTForge Designer CLI command: restforge-designer catalog [--section=<fields|navigation|app-config|dashboard|all>], run in the given cwd.
+This tool wraps the RESTForge Designer CLI command: npx restforge-designer catalog [--section=<fields|navigation|app-config|dashboard|all>], run in the given cwd.
 The catalog is a static constant (it does not depend on cwd) and the command does not modify any file and does not require a license.
 
 Preconditions:
-- The 'restforge-designer' binary must be installed and reachable on PATH. This tool pre-checks that by running
-  'restforge-designer --version'; if the binary is missing, the response surfaces that as a non-error precondition.
+- RESTForge Designer is invoked via 'npx restforge-designer' (the binary is bundled with the @restforgejs/platform package). This tool pre-checks that by running
+  'npx restforge-designer --version'; if it cannot run, the response surfaces that as a non-error precondition.
 - The installed designer must be recent enough to support the 'catalog' command. Older designer builds do not have it; in
   that case the response surfaces a non-error precondition suggesting the designer be updated.
 
@@ -65,7 +65,7 @@ PRESENTATION GUIDANCE:
 
       // Precondition check: the restforge-designer binary must be reachable on PATH.
       // Treated as a non-error precondition per the authoring guide §3.4.
-      const probe = await execProcess('restforge-designer', ['--version'], {
+      const probe = await execProcess('npx', ['restforge-designer', '--version'], {
         cwd: resolvedCwd,
         timeout: 10_000,
       });
@@ -74,16 +74,16 @@ PRESENTATION GUIDANCE:
           content: [
             {
               type: 'text',
-              text: `Precondition not met: the RESTForge Designer command-line tool is not installed or not on PATH.
+              text: `Precondition not met: the RESTForge Designer command-line tool could not be run via npx (the @restforgejs/platform package may not be installed in this folder).
 
 Working directory: ${resolvedCwd}
 Probe command: ${probe.command}
 Exit code: ${probe.exitCode}
 
 For the assistant:
-- The user needs to install RESTForge Designer (and ensure it is on the system PATH) before the UDF catalog can be retrieved.
-- When explaining to the user, say something like "the RESTForge Designer tool isn't installed or isn't on your PATH yet — please install it and try again". Do not mention internal tool names.
-- Once it is installed, retry getting the catalog.`,
+- Make sure this project was created with 'npx create-restforge-app' (or the @restforgejs/platform package is installed in the project folder) before the UDF catalog can be retrieved, then try again.
+- When explaining to the user, say something like "the RESTForge Designer tool couldn't run — make sure this project was created with create-restforge-app (or the RESTForge platform package is installed here), then try again". Do not mention internal tool names.
+- Once it can run, retry getting the catalog.`,
             },
           ],
           isError: false, // per §3.4
@@ -94,7 +94,7 @@ For the assistant:
       const args = ['catalog'];
       if (section) args.push(`--section=${section}`);
 
-      const result = await execProcess('restforge-designer', args, {
+      const result = await execProcess('npx', ['restforge-designer', ...args], {
         cwd: resolvedCwd,
         timeout: 15_000,
       });
@@ -212,7 +212,7 @@ For the assistant:
             text: `UDF catalog retrieved successfully.
 
 Working directory: ${resolvedCwd}
-Source: restforge-designer (serialized from validator constants) — single source of truth for the installed designer version
+Source: npx restforge-designer (serialized from validator constants) — single source of truth for the installed designer version
 Installed version: ${probe.stdout.trim() || 'unknown'}
 udfCatalogVersion: ${catalogVersion}
 Section(s): ${sectionsLabel}

@@ -26,8 +26,18 @@ DO NOT USE FOR:
 - Filling in credentials -> use 'setup_write_env'
 - Validating the configuration -> use 'setup_validate_config'
 
-This tool sits in the middle of the new-project setup chain: typically run
-after 'setup_create_folder' creates the project folder, and before
+SCAFFOLDING NOTE:
+The dominant way to create a new RESTForge project is the one-shot scaffolder
+'npx create-restforge-app <name>', which makes the folder, runs
+'npm install @restforgejs/platform' (local), and bundles the designer binary in a
+single step. This 'setup_install_package' tool (and 'setup_create_folder' /
+'setup_init_config') are the GRANULAR, programmatic alternative — use them when the
+agent must build the project step by step rather than running the interactive
+scaffolder. 'npm install @restforgejs/platform' remains valid but is no longer the
+primary entry point.
+
+In the granular flow this tool sits in the middle of the new-project setup chain:
+typically run after 'setup_create_folder' creates the project folder, and before
 'setup_init_config' which generates the configuration skeleton. 'setup_init_config'
 will return a precondition message if this tool has not been run first. // per §5.2
 

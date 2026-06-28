@@ -71,6 +71,19 @@ DDL changes — see LAYER BOUNDARY below; running, stopping, or restarting the
 server — see RUNTIME LIFECYCLE BOUNDARY below), state that explicitly to the
 user before proceeding.
 
+NEW PROJECT SCAFFOLDING:
+The dominant way a human creates a new RESTForge project is the one-shot
+scaffolder 'npx create-restforge-app <name>', which creates the project folder,
+runs 'npm install @restforgejs/platform' (local install), and bundles the
+'restforge-designer' binary — all in one step. 'npm install @restforgejs/platform'
+on its own remains valid but is no longer the primary entry point.
+The granular setup tools ('setup_create_folder' then 'setup_install_package' then
+'setup_init_config') are the programmatic alternative for when the agent must
+build the project step by step rather than running the interactive scaffolder.
+When the user asks how to start a new project, point them to
+'npx create-restforge-app'; reach for the granular tools when scaffolding must be
+driven incrementally by this server.
+
 RUNTIME LIFECYCLE BOUNDARY:
 For any user request involving starting, stopping, or restarting the
 RESTForge runtime server (e.g. "run my app", "jalankan server", "start
@@ -291,10 +304,13 @@ the result still aligns with the current database schema.
 DESIGNER (FRONTEND) DOMAIN:
 The codegen/setup/runtime tools above all wrap the backend CLI
 ('restforge', the @restforgejs/platform package). A separate family of
-tools — the 'designer_*' tools — wraps a DIFFERENT command-line product,
-'restforge-designer' (the RESTForge Designer frontend generator). Keep
-the two straight: backend payload/schema/API work goes through the
-'restforge' tools; frontend application work goes through the
+tools — the 'designer_*' tools — wraps a DIFFERENT command-line tool
+invoked as 'npx restforge-designer' (the RESTForge Designer frontend
+generator). Its binary is bundled inside the @restforgejs/platform
+package, so 'npx restforge-designer' works once the platform is installed
+(e.g. after 'npx create-restforge-app'); a separate install is no longer
+required. Keep the two straight: backend payload/schema/API work goes
+through the 'restforge' tools; frontend application work goes through the
 'designer_*' tools.
 
 Prefer the 'designer_*' tools when the user wants to:
@@ -309,23 +325,27 @@ Prefer the 'designer_*' tools when the user wants to:
   "restforge-designer", "designer", "rfd", or "frontend generation"
 
 Detection signals that this is RESTForge Designer (frontend) work:
-- The 'restforge-designer' binary (alias 'rfd') is installed and on PATH
+- RESTForge Designer is available via 'npx restforge-designer' (bundled in
+  @restforgejs/platform; alias 'rfd' when a standalone build is on PATH)
 - The user mentions UDF (UI Definition File), frontend generation, or a
   designer plugin ('vanilla-js-*')
 - A frontend project folder with a UDF payload (payload/NN-<name>.json
   in the frontend project) is in play
 
 Boundaries for the designer domain:
-- The 'designer_*' tools wrap the 'restforge-designer' binary, which is a
-  product SEPARATE from the backend 'restforge' CLI. They are not
-  interchangeable; do not route a backend RDF/SDF request to a
-  'designer_*' tool, or a UDF/frontend request to a 'codegen_*' tool.
+- The 'designer_*' tools wrap the 'npx restforge-designer' command, a tool
+  SEPARATE from the backend 'restforge' CLI (both binaries ship inside the
+  @restforgejs/platform package). They are not interchangeable; do not
+  route a backend RDF/SDF request to a 'designer_*' tool, or a UDF/frontend
+  request to a 'codegen_*' tool.
 - RESTForge Designer no longer has a license mechanism (activate,
   deactivate, license status/migrate, and the global --license flag were
   all removed from the binary). The 'designer_*' tools run license-free.
-- If the 'restforge-designer' binary is not installed or not on PATH, the
-  designer tools return a non-error precondition; relay it as a setup
-  step (install RESTForge Designer), not a failure.
+- If 'npx restforge-designer' cannot run (the @restforgejs/platform package
+  is not installed in the project folder), the designer tools return a
+  non-error precondition; relay it as a setup step (create the project with
+  'npx create-restforge-app', or install @restforgejs/platform), not a
+  failure.
 
 Canonical UDF flow (frontend authoring):
 The designer tools compose into one coherent path. When the user wants to

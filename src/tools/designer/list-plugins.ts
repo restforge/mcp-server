@@ -8,7 +8,7 @@ export function registerDesignerListPlugins(server: McpServer): void {
     'designer_list_plugins',
     {
       title: 'List Designer Plugins',
-      description: `List the RESTForge Designer frontend plugins available in the current environment, by running restforge-designer plugins list. Each plugin defines a frontend tech stack / template the designer can generate against.
+      description: `List the RESTForge Designer frontend plugins available in the current environment, by running npx restforge-designer plugins list. Each plugin defines a frontend tech stack / template the designer can generate against.
 
 USE WHEN:
 - The user asks which designer plugins are available, or wants the catalog of frontend templates
@@ -21,12 +21,12 @@ DO NOT USE FOR:
 - Validating a UDF payload against a plugin -> use 'designer_validate_payload'
 - Previewing the files a payload would generate -> use 'designer_preview_files'
 
-This tool wraps the RESTForge Designer CLI command: restforge-designer plugins list [--plugins-dir=<pluginsDir>], run in the given cwd.
+This tool wraps the RESTForge Designer CLI command: npx restforge-designer plugins list [--plugins-dir=<pluginsDir>], run in the given cwd.
 The CLI prints a table of available plugins (auto-detected, or from --plugins-dir when supplied). It does not modify any file and does not require a license.
 
 Preconditions:
-- The 'restforge-designer' binary must be installed and reachable on PATH. This tool pre-checks that by running
-  'restforge-designer --version'; if the binary is missing, the response will surface that as a non-error precondition.
+- RESTForge Designer is invoked via 'npx restforge-designer' (the binary is bundled with the @restforgejs/platform package). This tool pre-checks that by running
+  'npx restforge-designer --version'; if it cannot run, the response will surface that as a non-error precondition.
 
 PRESENTATION GUIDANCE:
 - Match the user's language. If the user writes in Indonesian, respond in Indonesian.
@@ -55,7 +55,7 @@ PRESENTATION GUIDANCE:
 
       // Precondition check: the restforge-designer binary must be reachable on PATH.
       // Treated as a non-error precondition per the authoring guide §3.4.
-      const probe = await execProcess('restforge-designer', ['--version'], {
+      const probe = await execProcess('npx', ['restforge-designer', '--version'], {
         cwd: projectCwd,
         timeout: 10_000,
       });
@@ -64,7 +64,7 @@ PRESENTATION GUIDANCE:
           content: [
             {
               type: 'text',
-              text: `Precondition not met: the RESTForge Designer command-line tool is not installed or not on PATH.
+              text: `Precondition not met: the RESTForge Designer command-line tool could not be run via npx (the @restforgejs/platform package may not be installed in this folder).
 
 Working directory: ${projectCwd}
 Plugins dir: ${pluginsDir ?? 'auto-detect'}
@@ -72,9 +72,9 @@ Probe command: ${probe.command}
 Exit code: ${probe.exitCode}
 
 For the assistant:
-- The user needs to install RESTForge Designer (and ensure it is on the system PATH) before the available plugins can be listed.
-- When explaining to the user, say something like "the RESTForge Designer tool isn't installed or isn't on your PATH yet — please install it and try again". Do not mention internal tool names.
-- Once it is installed, retry listing the plugins.`,
+- Make sure this project was created with 'npx create-restforge-app' (or the @restforgejs/platform package is installed in the project folder) before the available plugins can be listed, then try again.
+- When explaining to the user, say something like "the RESTForge Designer tool couldn't run — make sure this project was created with create-restforge-app (or the RESTForge platform package is installed here), then try again". Do not mention internal tool names.
+- Once it can run, retry listing the plugins.`,
             },
           ],
           isError: false, // per §3.4
@@ -85,7 +85,7 @@ For the assistant:
       const args = ['plugins', 'list'];
       if (pluginsDir) args.push(`--plugins-dir=${pluginsDir}`);
 
-      const result = await execProcess('restforge-designer', args, {
+      const result = await execProcess('npx', ['restforge-designer', ...args], {
         cwd: projectCwd,
         timeout: 15_000,
       });

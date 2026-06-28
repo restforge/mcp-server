@@ -8,7 +8,7 @@ export function registerDesignerGenerate(server: McpServer): void {
     'designer_generate',
     {
       title: 'Generate Designer Frontend',
-      description: `Generate frontend code from a UI Definition File (UDF) payload, by running restforge-designer generate. This WRITES the generated frontend files to disk.
+      description: `Generate frontend code from a UI Definition File (UDF) payload, by running npx restforge-designer generate. This WRITES the generated frontend files to disk.
 
 USE WHEN:
 - The user asks to generate / build the frontend application from a UDF payload
@@ -22,7 +22,7 @@ DO NOT USE FOR:
 - Initialising a new project from a plugin -> use 'designer_init_project'
 - Creating a new custom plugin from a template -> use 'designer_scaffold_plugin'
 
-This tool wraps the RESTForge Designer CLI command: restforge-designer generate --payload=<payload> --output=<output> [optional flags], run in the given cwd.
+This tool wraps the RESTForge Designer CLI command: npx restforge-designer generate --payload=<payload> --output=<output> [optional flags], run in the given cwd.
 The --payload and --output flags are always sent so the binary never drops into interactive prompt mode. Optional flags (plugin override, overwrite, scope, page, skip shared, plugins dir) are forwarded only when supplied; the binary defaults to scope 'app' when --scope is omitted.
 The recommended flow is read-before-write (§5.3): validate the payload, then preview the files, then generate.
 
@@ -32,8 +32,8 @@ Cross-reference (grounding & on-ramp):
 - Canonical UDF flow: codegen_migrate_payload -> designer_get_udf_catalog -> designer_validate_payload -> designer_preview_files -> designer_generate.
 
 Preconditions:
-- The 'restforge-designer' binary must be installed and reachable on PATH. This tool pre-checks that by running
-  'restforge-designer --version'; if the binary is missing, the response will surface that as a non-error precondition.
+- RESTForge Designer is invoked via 'npx restforge-designer' (the binary is bundled with the @restforgejs/platform package). This tool pre-checks that by running
+  'npx restforge-designer --version'; if it cannot run, the response will surface that as a non-error precondition.
 
 PRESENTATION GUIDANCE:
 - Match the user's language. If the user writes in Indonesian, respond in Indonesian.
@@ -102,7 +102,7 @@ PRESENTATION GUIDANCE:
 
       // Precondition check: the restforge-designer binary must be reachable on PATH.
       // Treated as a non-error precondition per the authoring guide §3.4.
-      const probe = await execProcess('restforge-designer', ['--version'], {
+      const probe = await execProcess('npx', ['restforge-designer', '--version'], {
         cwd: projectCwd,
         timeout: 10_000,
       });
@@ -111,7 +111,7 @@ PRESENTATION GUIDANCE:
           content: [
             {
               type: 'text',
-              text: `Precondition not met: the RESTForge Designer command-line tool is not installed or not on PATH.
+              text: `Precondition not met: the RESTForge Designer command-line tool could not be run via npx (the @restforgejs/platform package may not be installed in this folder).
 
 Working directory: ${projectCwd}
 Payload: ${payload}
@@ -121,9 +121,9 @@ Probe command: ${probe.command}
 Exit code: ${probe.exitCode}
 
 For the assistant:
-- The user needs to install RESTForge Designer (and ensure it is on the system PATH) before frontend code can be generated.
-- When explaining to the user, say something like "the RESTForge Designer tool isn't installed or isn't on your PATH yet — please install it and try again". Do not mention internal tool names.
-- Once it is installed, retry generating the frontend code.`,
+- Make sure this project was created with 'npx create-restforge-app' (or the @restforgejs/platform package is installed in the project folder) before frontend code can be generated, then try again.
+- When explaining to the user, say something like "the RESTForge Designer tool couldn't run — make sure this project was created with create-restforge-app (or the RESTForge platform package is installed here), then try again". Do not mention internal tool names.
+- Once it can run, retry generating the frontend code.`,
             },
           ],
           isError: false, // per §3.4
@@ -141,7 +141,7 @@ For the assistant:
       if (skipShared) args.push('--skip-shared');
       if (pluginsDir) args.push(`--plugins-dir=${pluginsDir}`);
 
-      const result = await execProcess('restforge-designer', args, {
+      const result = await execProcess('npx', ['restforge-designer', ...args], {
         cwd: projectCwd,
         timeout: 120_000,
       });

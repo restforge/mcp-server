@@ -8,7 +8,7 @@ export function registerDesignerScaffoldPlugin(server: McpServer): void {
     'designer_scaffold_plugin',
     {
       title: 'Scaffold Designer Plugin',
-      description: `Scaffold a new custom RESTForge Designer frontend plugin from a template, by running restforge-designer plugins scaffold. This WRITES a new plugin folder to disk that the user can then customise.
+      description: `Scaffold a new custom RESTForge Designer frontend plugin from a template, by running npx restforge-designer plugins scaffold. This WRITES a new plugin folder to disk that the user can then customise.
 
 USE WHEN:
 - The user asks to create a new custom designer/frontend plugin from scratch
@@ -22,12 +22,12 @@ DO NOT USE FOR:
 - Listing the available plugins -> use 'designer_list_plugins'
 - Inspecting one existing plugin's metadata -> use 'designer_inspect_plugin'
 
-This tool wraps the RESTForge Designer CLI command: restforge-designer plugins scaffold --id=<id> --output=<output> [--plugins-dir=<pluginsDir>], run in the given cwd.
+This tool wraps the RESTForge Designer CLI command: npx restforge-designer plugins scaffold --id=<id> --output=<output> [--plugins-dir=<pluginsDir>], run in the given cwd.
 The CLI creates a new plugin folder named after the given id under the output directory. It does NOT require a license (scaffolding is license-free).
 
 Preconditions:
-- The 'restforge-designer' binary must be installed and reachable on PATH. This tool pre-checks that by running
-  'restforge-designer --version'; if the binary is missing, the response will surface that as a non-error precondition.
+- RESTForge Designer is invoked via 'npx restforge-designer' (the binary is bundled with the @restforgejs/platform package). This tool pre-checks that by running
+  'npx restforge-designer --version'; if it cannot run, the response will surface that as a non-error precondition.
 
 PRESENTATION GUIDANCE:
 - Match the user's language. If the user writes in Indonesian, respond in Indonesian.
@@ -64,7 +64,7 @@ PRESENTATION GUIDANCE:
 
       // Precondition check: the restforge-designer binary must be reachable on PATH.
       // Treated as a non-error precondition per the authoring guide §3.4.
-      const probe = await execProcess('restforge-designer', ['--version'], {
+      const probe = await execProcess('npx', ['restforge-designer', '--version'], {
         cwd: projectCwd,
         timeout: 10_000,
       });
@@ -73,7 +73,7 @@ PRESENTATION GUIDANCE:
           content: [
             {
               type: 'text',
-              text: `Precondition not met: the RESTForge Designer command-line tool is not installed or not on PATH.
+              text: `Precondition not met: the RESTForge Designer command-line tool could not be run via npx (the @restforgejs/platform package may not be installed in this folder).
 
 Working directory: ${projectCwd}
 Plugin id: ${id}
@@ -83,9 +83,9 @@ Probe command: ${probe.command}
 Exit code: ${probe.exitCode}
 
 For the assistant:
-- The user needs to install RESTForge Designer (and ensure it is on the system PATH) before a plugin can be scaffolded.
-- When explaining to the user, say something like "the RESTForge Designer tool isn't installed or isn't on your PATH yet — please install it and try again". Do not mention internal tool names.
-- Once it is installed, retry scaffolding the plugin.`,
+- Make sure this project was created with 'npx create-restforge-app' (or the @restforgejs/platform package is installed in the project folder) before a plugin can be scaffolded, then try again.
+- When explaining to the user, say something like "the RESTForge Designer tool couldn't run — make sure this project was created with create-restforge-app (or the RESTForge platform package is installed here), then try again". Do not mention internal tool names.
+- Once it can run, retry scaffolding the plugin.`,
             },
           ],
           isError: false, // per §3.4
@@ -96,7 +96,7 @@ For the assistant:
       const args = ['plugins', 'scaffold', `--id=${id}`, `--output=${output}`];
       if (pluginsDir) args.push(`--plugins-dir=${pluginsDir}`);
 
-      const result = await execProcess('restforge-designer', args, {
+      const result = await execProcess('npx', ['restforge-designer', ...args], {
         cwd: projectCwd,
         timeout: 30_000,
       });

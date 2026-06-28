@@ -8,7 +8,7 @@ export function registerDesignerValidatePayload(server: McpServer): void {
     'designer_validate_payload',
     {
       title: 'Validate Designer Payload',
-      description: `Validate a frontend UI Definition File (UDF) payload against the schema of the RESTForge Designer plugin it targets, by running restforge-designer validate.
+      description: `Validate a frontend UI Definition File (UDF) payload against the schema of the RESTForge Designer plugin it targets, by running npx restforge-designer validate.
 
 USE WHEN:
 - The user asks to validate, check, or verify a frontend designer payload / UI definition (UDF) file
@@ -23,7 +23,7 @@ DO NOT USE FOR:
 - Validating raw SQL -> use 'codegen_validate_sql'
 - Generating the frontend code itself (this only validates, it does not write files)
 
-This tool wraps the RESTForge Designer CLI command: restforge-designer validate --payload=<payload> [--plugins-dir=<pluginsDir>], run in the given cwd.
+This tool wraps the RESTForge Designer CLI command: npx restforge-designer validate --payload=<payload> [--plugins-dir=<pluginsDir>], run in the given cwd.
 The CLI reads the UDF payload JSON, resolves the target plugin (auto-detected or from --plugins-dir), and reports whether
 the payload is valid against that plugin's schema, listing structural errors when it is not. It does not modify any file and
 does not require a license.
@@ -34,8 +34,8 @@ Cross-reference (grounding & on-ramp):
 - Canonical UDF flow: codegen_migrate_payload -> designer_get_udf_catalog -> designer_validate_payload -> designer_preview_files -> designer_generate.
 
 Preconditions:
-- The 'restforge-designer' binary must be installed and reachable on PATH. This tool pre-checks that by running
-  'restforge-designer --version'; if the binary is missing, the response will surface that as a non-error precondition.
+- RESTForge Designer is invoked via 'npx restforge-designer' (the binary is bundled with the @restforgejs/platform package). This tool pre-checks that by running
+  'npx restforge-designer --version'; if it cannot run, the response will surface that as a non-error precondition.
 
 PRESENTATION GUIDANCE:
 - Match the user's language. If the user writes in Indonesian, respond in Indonesian.
@@ -70,7 +70,7 @@ PRESENTATION GUIDANCE:
       // Treated as a non-error precondition per the authoring guide §3.4. The probe
       // distinguishes "binary missing" (precondition) from "binary ran and reported
       // something" (which falls through to the real execution below).
-      const probe = await execProcess('restforge-designer', ['--version'], {
+      const probe = await execProcess('npx', ['restforge-designer', '--version'], {
         cwd: projectCwd,
         timeout: 10_000,
       });
@@ -79,7 +79,7 @@ PRESENTATION GUIDANCE:
           content: [
             {
               type: 'text',
-              text: `Precondition not met: the RESTForge Designer command-line tool is not installed or not on PATH.
+              text: `Precondition not met: the RESTForge Designer command-line tool could not be run via npx (the @restforgejs/platform package may not be installed in this folder).
 
 Working directory: ${projectCwd}
 Payload: ${payload}
@@ -88,9 +88,9 @@ Probe command: ${probe.command}
 Exit code: ${probe.exitCode}
 
 For the assistant:
-- The user needs to install RESTForge Designer (and ensure it is on the system PATH) before a frontend payload can be validated.
-- When explaining to the user, say something like "the RESTForge Designer tool isn't installed or isn't on your PATH yet — please install it and try again". Do not mention internal tool names.
-- Once it is installed, retry validating the payload.`,
+- Make sure this project was created with 'npx create-restforge-app' (or the @restforgejs/platform package is installed in the project folder) before a frontend payload can be validated, then try again.
+- When explaining to the user, say something like "the RESTForge Designer tool couldn't run — make sure this project was created with create-restforge-app (or the RESTForge platform package is installed here), then try again". Do not mention internal tool names.
+- Once it can run, retry validating the payload.`,
             },
           ],
           isError: false, // per §3.4
@@ -102,7 +102,7 @@ For the assistant:
       const args = ['validate', `--payload=${payload}`];
       if (pluginsDir) args.push(`--plugins-dir=${pluginsDir}`);
 
-      const result = await execProcess('restforge-designer', args, {
+      const result = await execProcess('npx', ['restforge-designer', ...args], {
         cwd: projectCwd,
         timeout: 30_000,
       });

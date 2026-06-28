@@ -23,8 +23,14 @@ DO NOT USE FOR:
 - Generating skeleton config -> use 'setup_init_config'
 - Writing credentials -> use 'setup_write_env'
 
-This is typically the very first step in setting up a new RESTForge project.
-The natural next step after this is 'setup_install_package' to install the
+SCAFFOLDING NOTE:
+The dominant way to create a new project is the one-shot scaffolder
+'npx create-restforge-app <name>' (makes the folder, installs
+@restforgejs/platform, bundles the designer). This tool is the GRANULAR
+alternative — use it when the agent must build the project step by step.
+
+In the granular flow this is the very first step in setting up a new RESTForge
+project. The natural next step after this is 'setup_install_package' to install the
 RESTForge package into the new folder. // per §5.2
 
 This tool runs: fs.mkdir(<parentCwd>/<folderName>, { recursive: true })
